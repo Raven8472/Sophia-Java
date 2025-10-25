@@ -15,6 +15,11 @@
 import javax.swing.*;           // Swing UI components
 import java.awt.*;              // AWT for Color, Dimension, Layouts
 import java.time.LocalDate;     // Java Time API for date parsing and fields
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.time.format.DateTimeParseException;
+import java.awt.GraphicsEnvironment;
+import javax.swing.SwingUtilities;
 
 public class StarDateConverter extends JFrame {
 
@@ -220,9 +225,66 @@ public class StarDateConverter extends JFrame {
     }
 
     // ---------------------------------------------------------------------
+    // Static method: convertToStardateStatic
+    // - Public static version of the stardate conversion for headless mode or CLI use.
+    // - Simplified error handling: returns "Invalid Date" on parse errors.
+    // ---------------------------------------------------------------------
+    public static String convertToStardateStatic(String input) {
+        try {
+            LocalDate date = LocalDate.parse(input.trim());
+            int baseYear = 2323; // use your BASE_YEAR constant if present
+            double yearDiff = date.getYear() - baseYear;
+            double dayOfYear = date.getDayOfYear();
+            return String.format("%.1f", yearDiff * 1000 + (dayOfYear / 365.0) * 1000);
+        } catch (DateTimeParseException ex) {
+            return "Invalid Date";
+        }
+    }
+
+    // ---------------------------------------------------------------------
+    // Static method: isValidDateFormatStatic
+    // - Public static method to check date format validity without conversion.
+    // - Returns true if the date string can be parsed into a LocalDate.
+    // ---------------------------------------------------------------------
+    public static boolean isValidDateFormatStatic(String input) {
+        try {
+            LocalDate.parse(input.trim());
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    // ---------------------------------------------------------------------
     // Main entry point: schedule the GUI creation on the Event Dispatch Thread
     // ---------------------------------------------------------------------
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(StarDateConverter::new);
+    public static void main(String[] args) throws Exception {
+        // Headless check: switch to CLI mode automatically on Replit / headless hosts
+        if (GraphicsEnvironment.isHeadless()) {
+            BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+            System.out.println("Running in headless mode (CLI). Enter Earth date (YYYY-MM-DD) or blank to exit:");
+            String line;
+            while ((line = br.readLine()) != null) {
+                line = line.trim();
+                if (line.isEmpty()) break;
+                if (isValidDateFormatStatic(line)) {
+                    System.out.println("StarDate: " + convertToStardateStatic(line));
+                } else {
+                    System.out.println("Invalid date format. Use YYYY-MM-DD.");
+                }
+                System.out.println("\nEnter another date or blank to exit:");
+            }
+            System.out.println("Exiting.");
+            return;
+        }
+
+        // Otherwise run the GUI as before
+        SwingUtilities.invokeLater(() -> {
+            try {
+                new StarDateConverter().setVisible(true);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
     }
 }
