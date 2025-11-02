@@ -1,4 +1,4 @@
-# Sophia Java Projects
+# Java Projects
 
 This repository contains my Java programming projects and assignments for Sophia courses.
 
